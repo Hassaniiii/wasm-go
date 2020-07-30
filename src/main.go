@@ -6,53 +6,72 @@ import (
 	wasm "github.com/wasmerio/go-ext-wasm/wasmer"
 )
 
-func main() {
-	cInstance, err := wasmC()
-	if err != nil {
-		panic(err)
-	}
-	defer cInstance.Close()
-
-	// Gets exported functions from the WebAssembly instance.
-	sumC := cInstance.Exports["sum"]
-	multiplyC := cInstance.Exports["multiply"]
-
-	rustInstance, err := wasmRust()
-	if err != nil {
-		panic(err)
-	}
-	defer rustInstance.Close()
-
-	// Gets exported functions from the WebAssembly instance.
-	sumRust := rustInstance.Exports["sum"]
-	multiplyRust := rustInstance.Exports["multiply"]
-
-	// Calls that exported function with Go standard values. The WebAssembly
-	// types are inferred and values are casted automatically.
-	resultSumC, _ := sumRust(5, 37)
-	resultSumRust, _ := sumC(5, 37)
-
-	resultMultiplyC, _ := multiplyC(2, 5)
-	resultMultiplyRust, _ := multiplyRust(2, 5)
-
-	fmt.Println("Sums are equal: ", resultSumC == resultSumRust)                 // 42!
-	fmt.Println("Multiplies are equal: ", resultMultiplyC == resultMultiplyRust) // 10!
-}
+func main() {}
 
 // Assembly files are generated using ´https://webassembly.studio/´
 
-func wasmC() (wasm.Instance, error) {
+func WasmC(x, y int) (int32, int32) {
 	// Reads the WebAssembly module as bytes.
-	bytes, _ := wasm.ReadBytes("./lib/sample-c.wasm")
+	bytes, err := wasm.ReadBytes("../lib/sample-c.wasm")
+	if err != nil {
+		fmt.Println("Error in reading c wasm file")
+		return -1, -1
+	}
 
 	// Instantiates the WebAssembly module.
-	return wasm.NewInstance(bytes)
+	instance, err := wasm.NewInstance(bytes)
+	if err != nil {
+		return -1, -1
+	}
+	defer instance.Close()
+
+	// Gets exported functions from the WebAssembly instance.
+	sum := instance.Exports["sum"]
+	multiply := instance.Exports["multiply"]
+
+	// Calls that exported function with Go standard values. The WebAssembly types are inferred and values are casted automatically.
+	resultSum, err := sum(x, y)
+	if err != nil {
+		fmt.Println("The error happens in suming with c wasm", err)
+		return -1, -1
+	}
+
+	resultMultiply, err := multiply(x, y)
+	if err != nil {
+		fmt.Println("The error happens in multiplying with c wasm", err)
+		return -1, -1
+	}
+
+	return resultSum.ToI32(), resultMultiply.ToI32()
 }
 
-func wasmRust() (wasm.Instance, error) {
+func WasmRust(x, y int) (int32, int32) {
 	// Reads the WebAssembly module as bytes.
-	bytes, _ := wasm.ReadBytes("./lib/sample-rust.wasm")
+	bytes, _ := wasm.ReadBytes("../lib/sample-rust.wasm")
 
 	// Instantiates the WebAssembly module.
-	return wasm.NewInstance(bytes)
+	instance, err := wasm.NewInstance(bytes)
+	if err != nil {
+		return -1, -1
+	}
+	defer instance.Close()
+
+	// Gets exported functions from the WebAssembly instance.
+	sum := instance.Exports["sum"]
+	multiply := instance.Exports["multiply"]
+
+	// Calls that exported function with Go standard values. The WebAssembly types are inferred and values are casted automatically.
+	resultSum, err := sum(x, y)
+	if err != nil {
+		fmt.Println("The error happens in suming with rust wasm", err)
+		return -1, -1
+	}
+
+	resultMultiply, err := multiply(x, y)
+	if err != nil {
+		fmt.Println("The error happens in multiplying with rust wasm", err)
+		return -1, -1
+	}
+
+	return resultSum.ToI32(), resultMultiply.ToI32()
 }
