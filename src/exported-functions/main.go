@@ -12,7 +12,7 @@ func main() {}
 
 func WasmC(x, y int) (int32, int32) {
 	// Reads the WebAssembly module as bytes.
-	bytes, err := wasm.ReadBytes("../lib/sample-c.wasm")
+	bytes, err := wasm.ReadBytes("../../lib/sample-c.wasm")
 	if err != nil {
 		fmt.Println("Error in reading c wasm file")
 		return -1, -1
@@ -47,7 +47,7 @@ func WasmC(x, y int) (int32, int32) {
 
 func WasmRust(x, y int) (int32, int32) {
 	// Reads the WebAssembly module as bytes.
-	bytes, _ := wasm.ReadBytes("../lib/sample-rust.wasm")
+	bytes, _ := wasm.ReadBytes("../../lib/sample-rust.wasm")
 
 	// Instantiates the WebAssembly module.
 	instance, err := wasm.NewInstance(bytes)
